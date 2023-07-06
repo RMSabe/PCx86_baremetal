@@ -24,7 +24,7 @@ NCOLOR_ADDR equ 0x7e02
 mov [ds:NLINE_ADDR], word 0x0
 mov [ds:NCOLOR_ADDR], byte 0x0
 
-HOLDTIME equ 0x10000000
+HOLDTIME equ 0x08000000
 
 sysloop:
 	mov sp, bp
