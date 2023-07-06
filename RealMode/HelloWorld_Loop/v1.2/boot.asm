@@ -24,7 +24,7 @@ mov [esi], word 0x0
 mov esi, dword NCOLOR_ADDR
 mov [esi], byte 0x0
 
-HOLDTIME equ 0x18000000
+HOLDTIME equ 0x08000000
 
 sysloop:
 	mov esp, ebp
