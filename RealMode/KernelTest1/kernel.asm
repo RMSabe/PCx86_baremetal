@@ -48,7 +48,7 @@ sys_start:
 	mov ebx, dword KERNEL_BASE32_ADDR
 	or bx, word $
 	push dword ebx
-	jmp hold
+	jmp hold	;wait 20000000h cycles before proceeding
 	times 32 nop
 	mov ebp, dword STACK_BASE32_ADDR
 	mov esp, ebp
@@ -58,7 +58,7 @@ sys_start:
 	push dword eax
 	or bx, word $
 	push dword ebx
-	jmp print
+	jmp print	;print kernel loaded message
 	times 32 nop
 	mov ebp, dword STACK_BASE32_ADDR
 	mov esp, ebp
@@ -68,7 +68,7 @@ sys_start:
 	push dword eax
 	or bx, word $
 	push dword ebx
-	jmp print
+	jmp print	;print boot device message
 	times 32 nop
 	xor ecx, ecx
 	mov esi, dword 0x7e00
@@ -80,7 +80,7 @@ sys_start:
 	mov ebx, dword KERNEL_BASE32_ADDR
 	or bx, word $
 	push dword ebx
-	jmp loaddec_u32
+	jmp loaddec_u32		;load text buffer with boot device number
 	times 32 nop
 	mov ebp, dword STACK_BASE32_ADDR
 	mov esp, ebp
@@ -88,7 +88,7 @@ sys_start:
 	mov ebx, dword KERNEL_BASE32_ADDR
 	or bx, word $
 	push dword ebx
-	jmp print
+	jmp print		;print boot device number
 	times 32 nop
 	mov ebp, dword STACK_BASE32_ADDR
 	mov esp, ebp
@@ -96,7 +96,7 @@ sys_start:
 	mov ebx, dword KERNEL_BASE32_ADDR
 	or bx, word $
 	push dword ebx
-	jmp hold
+	jmp hold		;wait 80000000h cycles before proceeding
 	times 32 nop
 	mov ebp, dword STACK_BASE32_ADDR
 	mov esp, ebp
@@ -106,6 +106,7 @@ sys_start:
 	jmp resetscreen
 	times 32 nop
 
+;proc 1: print unsigned numbers from 0 to 200 with a 08000000h delay
 proc_1:
 	mov esi, dword 0x20000
 	mov ecx, dword 0
@@ -144,6 +145,7 @@ proc_1:
 	mov [esi], dword ecx
 	jmp proc_1_loop
 
+;proc 2: print signed numbers from -100 to 100 with a 08000000 delay
 proc_2:
 	mov esi, dword 0x20000
 	mov ecx, dword -100
@@ -182,6 +184,7 @@ proc_2:
 	mov [esi], dword ecx
 	jmp proc_2_loop
 
+;display terminate message and stop
 terminate:
 	mov ebp, dword STACK_BASE32_ADDR
 	mov esp, ebp
