@@ -9,10 +9,19 @@ P_BOOTDEVICE equ 0x7e00
 
 STACKLIST_BASE32_ADDR equ 0x50000
 P_STACKLIST_INDEX32 equ 0x51000
+;This STACKLIST behaves as a secondary stack.
+;Its main usage is when calling functions. The stacklist is always filled by the callee function as needed, which is useful for conditional functions
+;The return address of each function is the last value pushed into the regular stack before calling the function
+;The way I set in this kernel was the following: I divided the function types in 3 groups:
+;Group 1: no args, no conditional functions: this function doesnt need to use the stacklist. Just pop the last value of regular stack and jump back to it
+;Group 2: args, no conditional functions: in this case, stacklist should be used to store at least the return value of the function
+;Group 3: args, conditional function: in this case, stacklist should be used to store all arguments (including return value) of the function
+;Index value stores the offset to the next available space on stacklist. It should be updated every time a value is pushed on, popped off the stacklist
+;For both the regular stack and the stacklist, I use only 32bit integer values
 
-NTEMP16_ADDR equ 0x40000
-NLINE16_ADDR equ 0x40002
-TEXTSPACE_ADDR equ 0x40020
+NTEMP16_ADDR equ 0x40000 ;16bit temporary value, in case needed
+NLINE16_ADDR equ 0x40002 ;16bit unsigned value: I used it to keep track of the current character position on screen
+TEXTSPACE_ADDR equ 0x40020 ;Just a text buffer
 
 org 0x0
 bits 16
@@ -195,15 +204,18 @@ terminate:
 	times 4 nop
 	jmp terminate_loop
 
+;function: load unsigned int32 into text buffer
+;args (push order): input value, output buffer addr, return addr
 loaddec_u32:
+	;this function has args, but no conditional functions inside
 	mov esi, dword P_STACKLIST_INDEX32
 	mov edi, dword STACKLIST_BASE32_ADDR
 	mov ecx, dword [esi]
 	add edi, ecx
 	pop dword ebx
-	mov [edi], dword ebx
+	mov [edi], dword ebx	;push return addr into stacklist
 	add ecx, dword 0x4
-	mov [esi], dword ecx
+	mov [esi], dword ecx	;update stacklist index value
 
 	pop dword ebx
 	mov edi, ebx
@@ -302,22 +314,25 @@ loaddec_u32:
 	mov ecx, dword [esi]
 	sub ecx, dword 0x4
 	add edi, ecx
-	mov ebx, dword [edi]
-	mov [esi], dword ecx
+	mov ebx, dword [edi]	;fetch return addr from stacklist
+	mov [esi], dword ecx	;update stacklist index value
 
 	and ebx, dword 0xffff
 	add bx, word 0x10
 	jmp bx
 
+;function: load signed int32 into text buffer
+;args (push order): input value, output buffer addr, return addr
 loaddec_s32:
+	;this function has args, but no conditional functions inside
 	mov esi, dword P_STACKLIST_INDEX32
 	mov edi, dword STACKLIST_BASE32_ADDR
 	mov ecx, dword [esi]
 	add edi, ecx
 	pop dword ebx
-	mov [edi], dword ebx
+	mov [edi], dword ebx	;push return addr into stacklist
 	add ecx, dword 0x4
-	mov [esi], dword ecx
+	mov [esi], dword ecx	;update stacklist index value
 
 	pop dword ebx
 	mov edi, ebx
@@ -425,14 +440,17 @@ loaddec_s32:
 	mov ecx, dword [esi]
 	sub ecx, dword 0x4
 	add edi, ecx
-	mov ebx, dword [edi]
-	mov [esi], dword ecx
+	mov ebx, dword [edi]	;fetch return addr from stacklist
+	mov [esi], dword ecx	;update stacklist index value
 
 	and ebx, dword 0xffff
 	add bx, word 0x10
 	jmp bx
 
+;function: clear screen/reset nline16 value
+;args (push order): return addr
 resetscreen:
+	;This function has no args, no conditional functions inside
 	mov esi, dword NLINE16_ADDR
 	mov [esi], word 0x0
 	
@@ -450,18 +468,21 @@ resetscreen:
 	add bx, word 0x10
 	jmp bx
 
+;function: print a text on the screen
+;args (push order): input text buffer addr, return addr
 print:
+	;this function has args and conditional functions inside
 	mov esi, dword P_STACKLIST_INDEX32
 	mov edi, dword STACKLIST_BASE32_ADDR
 	mov ecx, dword [esi]
 	add edi, ecx
 	pop dword ebx
-	mov [edi], dword ebx
+	mov [edi], dword ebx	;push return addr into stacklist
 	add edi, dword 0x4
 	pop dword ebx
-	mov [edi], dword ebx
+	mov [edi], dword ebx	;push arg into stacklist
 	add ecx, dword 0x8
-	mov [esi], dword ecx
+	mov [esi], dword ecx	;update stacklist index value
 
 	xor ecx, ecx
 	mov ebx, dword KERNEL_BASE32_ADDR
@@ -470,7 +491,7 @@ print:
 	or bx, word $
 	cmp cx, word 0xfa0
 	push dword ebx
-	jae resetscreen
+	jae resetscreen		;conditional function
 	times 32 nop
 
 	mov esi, dword P_STACKLIST_INDEX32
@@ -478,8 +499,8 @@ print:
 	mov ecx, dword [esi]
 	sub ecx, dword 0x4
 	add edi, ecx
-	mov ebx, dword [edi]
-	mov [esi], dword ecx
+	mov ebx, dword [edi]	;fetch arg from stacklist
+	mov [esi], dword ecx	;update stacklist index value
 
 	mov esi, ebx
 	mov edi, dword NLINE16_ADDR
@@ -514,22 +535,25 @@ print:
 	mov ecx, dword [esi]
 	sub ecx, dword 0x4
 	add edi, ecx
-	mov ebx, dword [edi]
-	mov [esi], dword ecx
+	mov ebx, dword [edi]	;fetch return addr from stacklist
+	mov [esi], dword ecx	;update stacklist index value
 
 	and ebx, dword 0xffff
 	add bx, word 0x10
 	jmp bx
 
+;function: delay system
+;args (push order): hold time (cycles), return addr
 hold:
+	;this function has args, but no conditional functions inside
 	mov esi, dword P_STACKLIST_INDEX32
 	mov edi, dword STACKLIST_BASE32_ADDR
 	mov ecx, dword [esi]
 	add edi, ecx
 	pop dword ebx
-	mov [edi], dword ebx
+	mov [edi], dword ebx	;push return addr into stacklist
 	add ecx, dword 0x4
-	mov [esi], dword ecx
+	mov [esi], dword ecx	;update stacklist index value
 	
 	pop dword eax
 	xor ebx, ebx
@@ -546,8 +570,8 @@ hold:
 	mov ecx, dword [esi]
 	sub ecx, dword 0x4
 	add edi, ecx
-	mov ebx, dword [edi]
-	mov [esi], dword ecx
+	mov ebx, dword [edi]	;fetch return addr from stacklist
+	mov [esi], dword ecx	;update stacklist index value
 
 	and ebx, dword 0xffff
 	add bx, word 0x10
