@@ -348,92 +348,13 @@ loaddec_s32:
 	not ebx
 	inc ebx
 	loaddec_s32_pos:
-	xor edx, edx
-	mov eax, ebx
-	mov ecx, dword 1000000000
-	div dword ecx
-	and eax, dword 0xff
-	add al, byte 0x30
-	mov [edi], byte al
-	inc edi
-	mov ebx, edx
-	xor edx, edx
-	mov eax, ebx
-	mov ecx, dword 100000000
-	div dword ecx
-	and eax, dword 0xff
-	add al, byte 0x30
-	mov [edi], byte al
-	inc edi
-	mov ebx, edx
-	xor edx, edx
-	mov eax, ebx
-	mov ecx, dword 10000000
-	div dword ecx
-	and eax, dword 0xff
-	add al, byte 0x30
-	mov [edi], byte al
-	inc edi
-	mov ebx, edx
-	xor edx, edx
-	mov eax, ebx
-	mov ecx, dword 1000000
-	div dword ecx
-	and eax, dword 0xff
-	add al, byte 0x30
-	mov [edi], byte al
-	inc edi
-	mov ebx, edx
-	xor edx, edx
-	mov eax, ebx
-	mov ecx, dword 100000
-	div dword ecx
-	and eax, dword 0xff
-	add al, byte 0x30
-	mov [edi], byte al
-	inc edi
-	mov ebx, edx
-	xor edx, edx
-	mov eax, ebx
-	mov ecx, dword 10000
-	div dword ecx
-	and eax, dword 0xff
-	add al, byte 0x30
-	mov [edi], byte al
-	inc edi
-	mov ebx, edx
-	xor edx, edx
-	mov eax, ebx
-	mov ecx, dword 1000
-	div dword ecx
-	and eax, dword 0xff
-	add al, byte 0x30
-	mov [edi], byte al
-	inc edi
-	mov ebx, edx
-	xor edx, edx
-	mov eax, ebx
-	mov ecx, dword 100
-	div dword ecx
-	and eax, dword 0xff
-	add al, byte 0x30
-	mov [edi], byte al
-	inc edi
-	mov ebx, edx
-	xor edx, edx
-	mov eax, ebx
-	mov ecx, dword 10
-	div dword ecx
-	and eax, dword 0xff
-	add al, byte 0x30
-	mov [edi], byte al
-	inc edi
-	mov eax, edx
-	and eax, dword 0xff
-	add al, byte 0x30
-	mov [edi], byte al
-	inc edi
-	mov [edi], byte 0x0
+	push dword ebx
+	push dword edi
+	mov ebx, dword KERNEL_BASE32_ADDR
+	or bx, word $
+	push dword ebx
+	jmp loaddec_u32
+	times 32 nop
 
 	mov esi, dword P_STACKLIST_INDEX32
 	mov edi, dword STACKLIST_BASE32_ADDR
