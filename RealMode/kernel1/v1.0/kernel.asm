@@ -114,7 +114,7 @@ sys_start:
 	times 20 nop
 
 sys_main:
-;This is where you may create yout custom routines, or add a test routine
+;This is where you may create your custom routines, or add a test routine.
 
 sys_terminate:
 	mov ebp, dword STACK_BASE32_ADDR
