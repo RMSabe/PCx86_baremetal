@@ -7,7 +7,7 @@ For example: TEXTBUFFER is now a label in the code called _textbuf. It can be ac
 Just as kernel1 and kernel2 v1.0, this project uses a specific calling convention:
 all arguments are pushed into the stack before jumping to a function. Return address should always be the last argument.
 
-RETURN_MARGIN_CALLEE and RETURN_MARGIN_CALLER: is a "landing area" used when jumping back from the callee routine/function to the caller routine/function. 
+RETURN_MARGIN_CALLEE and RETURN_MARGIN_CALLER: are a "landing area" used when jumping back from the callee routine/function to the caller routine/function. 
 These are used to prevent repeating/skipping instructions in the caller routine/function.
 
 _stacklist and _stacklist_index: _stacklist is a memory buffer that behaves as a parallel stack. 
