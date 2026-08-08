@@ -1,0 +1,2 @@
+All kernel binaries are placed here.
+

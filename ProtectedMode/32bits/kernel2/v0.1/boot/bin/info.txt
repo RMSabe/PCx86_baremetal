@@ -1,0 +1,2 @@
+All boot binaries are placed here.
+
